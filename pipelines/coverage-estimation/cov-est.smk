@@ -3,7 +3,7 @@
 File:        cov-est.smk
 Description: Mean coverage and relative abundance estimation of vOTUs
 Author:      Hanrong Chen (chenhr@a-star.edu.sg)
-Repository:  https://github.com/CSB5/SPMP_Phages/coverage-estimation
+Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/coverage-estimation
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:

@@ -5,7 +5,7 @@ Description: Performs UPGMA hierarchical clustering on a pairwise similarity
              matrix to generate cluster labels (VCs) at a range of distance
              thresholds.
 Author:      Hanrong Chen (chenhr@a-star.edu.sg)
-Repository:  https://github.com/CSB5/SPMP_Phages/vfc-construction
+Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/vfc-construction
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:

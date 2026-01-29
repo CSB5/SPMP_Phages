@@ -4,7 +4,7 @@ File:        get_clipped_coverage.py
 Description: Calculates clipped mean and standard deviation of base coverage
              for a set of references in a sample.
 Author:      Hanrong Chen (chenhr@a-star.edu.sg)
-Repository:  https://github.com/CSB5/SPMP_Phages/coverage-estimation
+Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/coverage-estimation
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:

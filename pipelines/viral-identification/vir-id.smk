@@ -3,7 +3,7 @@
 File:        vir-id.smk
 Description: Viral identification leveraging VirSorter2, CheckV, and geNomad
 Author:      Hanrong Chen (chenhr@a-star.edu.sg)
-Repository:  https://github.com/CSB5/SPMP_Phages/viral-identification
+Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/viral-identification
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:

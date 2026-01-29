@@ -4,7 +4,7 @@ File:        vfc.smk
 Description: Construction of viral clusters from a set of input and reference
              vOTUs based on protein sharing.
 Author:      Hanrong Chen (chenhr@a-star.edu.sg)
-Repository:  https://github.com/CSB5/SPMP_Phages/vfc-construction
+Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/vfc-construction
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:
