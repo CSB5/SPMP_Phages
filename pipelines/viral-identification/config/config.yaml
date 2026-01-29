@@ -1,0 +1,12 @@
+num_samples: 109
+sample_prefix: "TLL" # sample prefix
+padding: 1 # number of digits to pad sample numbers
+
+contigs_dir: "data/"
+contigs_filename: ".fna"
+contig_name_prefix: "opera_contig_" # contig header prefix (removed from VirSorter2+CheckV viral IDs)
+
+min_len: 5000
+min_vs2_score: 0.5
+max_gmd_fdr: 0.01
+genomad_db: "resources/genomad_db"

@@ -1,0 +1,146 @@
+"""
+================================================================================
+File:        cov-est.smk
+Description: Mean coverage and relative abundance estimation of vOTUs
+Author:      Hanrong Chen (chenhr@a-star.edu.sg)
+Repository:  https://github.com/CSB5/SPMP_Phages/coverage-estimation
+Citation:    See README.md for citation instructions.
+================================================================================
+Usage:
+    snakemake -s cov-est.smk --cores 24
+
+================================================================================
+"""
+
+configfile: "config/config.yaml"
+
+SAMPLES = [config["sample_prefix"] + str(n).zfill(config["padding"]) for n in range(1, config["num_samples"] + 1)]
+
+REF = config["reference_fasta"]
+
+rule all:
+    input:
+        "results/" + config["output_prefix"] + "-abundance.tsv"
+
+# --- Map reads to reference ---
+
+rule bwa_index:
+    input:
+        REF
+    output:
+        multiext(REF, ".amb", ".ann", ".bwt", ".pac", ".sa")
+    shell:
+        "bwa index {input}"
+
+rule bwa_mem:
+    input:
+        ref = REF,
+        idx = multiext(REF, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        r1 = config["reads_dir"] + "{sample}" + config["reads_r1"],
+        r2 = config["reads_dir"] + "{sample}" + config["reads_r2"]
+    output:
+        temp("results/{sample}.sam")
+    threads: 8
+    shell:
+        "bwa mem -t {threads} {input.ref} {input.r1} {input.r2} > {output}"
+
+# --- Filter reads ---
+
+rule view_sort:
+    input:
+        "results/{sample}.sam"
+    output:
+        temp("results/{sample}.bam")
+    threads: 8
+    shell:
+        "samtools view -b -F 256 -@ {threads} {input} | samtools sort -@ {threads} - > {output}"
+
+rule index_bam:
+    input:
+        "results/{sample}.bam"
+    output:
+        temp("results/{sample}.bam.bai")
+    threads: 8
+    shell:
+        "samtools index -@ {threads} {input} {output}"
+
+rule filter_bam:
+    input:
+        bam = "results/{sample}.bam",
+        bai = "results/{sample}.bam.bai"
+    output:
+        "results/{sample}_flt.bam"
+    params:
+        min_id = config["min_id"],
+        min_cov = config["min_cov"],
+        check_proper_pair = config["check_proper_pair"]
+    shell:
+        """
+        python scripts/bamfilter.py -i {input.bam} -o {output} --min_id {params.min_id} \
+        --min_cov {params.min_cov} --check_proper_pair {params.check_proper_pair}
+        """
+
+# --- Generate coverage and depth statistics ---
+
+rule coverage:
+    input:
+        "results/{sample}_flt.bam"
+    output:
+        "results/{sample}_coverage.tsv"
+    shell:
+        "samtools coverage {input} > {output}"
+
+rule depth:
+    input:
+        "results/{sample}_flt.bam"
+    output:
+        "results/{sample}_depth.tsv"
+    shell:
+        "samtools depth {input} > {output}"
+
+# --- Compute clipped mean coverage ---
+
+rule get_clipped_coverage:
+    input:
+        cov = "results/{sample}_coverage.tsv",
+        depth = "results/{sample}_depth.tsv"
+    output:
+        "results/{sample}_clippedcov.tsv"
+    params:
+        prefix = config["ref_prefix"]
+    shell:
+        "python scripts/get_clipped_coverage.py -c {input.cov} -d {input.depth} -s {wildcards.sample} -p {params.prefix} -o {output}"
+
+# --- Detection and abundance estimation ---
+
+rule detection_abundance:
+    input:
+        "results/{sample}_clippedcov.tsv"
+    output:
+        "results/{sample}_abundance.tsv"
+    params:
+        covthresh = config["covthresh"]
+    run:
+        import pandas as pd
+        df = pd.read_csv(input[0], sep='\t')
+
+        df = df[df.covbreadth >= params.covthresh]
+
+        df['sum_covmean'] = df.groupby('sample_id').covmean.transform('sum')
+        df['perc_abun'] = df.covmean/df['sum_covmean']*100
+        df = df.drop(columns='sum_covmean')
+
+        df.to_csv(output[0], sep='\t', index=False)
+
+# --- Aggregate results ---
+
+rule combine_results:
+    input:
+        expand("results/{sample}_abundance.tsv", sample=SAMPLES)
+    output:
+        "results/" + config["output_prefix"] + "-abundance.tsv"
+    run:
+        import pandas as pd
+        dfs = [pd.read_csv(tsv, sep='\t') for tsv in input]
+        df = pd.concat(dfs)
+        df.to_csv(output[0], sep='\t', index=False)

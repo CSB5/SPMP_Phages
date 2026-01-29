@@ -1,3 +1,11 @@
+pipelines/pNpS/
+pipelines/viral-identification/data/*
+pipelines/viral-identification/resources/*
+pipelines/viral-identification/results/*
+pipelines/vfc-construction/data/*
+pipelines/vfc-construction/resources/*
+!**/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
