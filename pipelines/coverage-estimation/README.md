@@ -81,7 +81,7 @@ The following settings are defined in `config/config.yaml`:
 
 * Reference FASTA (`reference_fasta`)
 * Prefix for id and len of references (`ref_prefix`)
-* Final output filname prefix (`output_prefix`)
+* Final output filename prefix (`output_prefix`)
 * Number of samples (`num_samples`)
 * Sample name prefix (`sample_prefix`)
 * Sample number padding (`padding`)
@@ -93,6 +93,7 @@ By default, sample names are generated as:
   ```
   <sample_prefix>1, <sample_prefix>2, ..., <sample_prefix><num_samples>
   ```
+This can be changed by modifying the `SAMPLES` parameter in `cov-est.smk`.
 
 ### 6.2 Parameters
 
@@ -100,7 +101,7 @@ The following parameters are defined in `config/config.yaml`:
 
 * Minimum % identity of read alignment (`min_id`, default: 95)
 * Minimum % coverage of read (`min_cov`, default: 80)
-* Whether to check that reads are properly paired (`check_proper_pair`, default: 1)
+* Whether to check if reads are properly paired (`check_proper_pair`, default: 1)
 * Minimum % coverage breadth for vOTU detection in a sample (`covthresh`, default: 70)
 
 ### 6.3 Running

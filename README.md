@@ -19,7 +19,7 @@ Scripts used to generate the results and figures for the manuscript titled: "GuF
 
 ## Contact
 
-For questions regarding the code in this repository, please contact:
+For questions regarding the code and data in this repository, please contact:
 [Hanrong Chen](mailto:chenhr@a-star.edu.sg), [Niranjan Nagarajan](mailto:niranjan@nus.edu.sg)
 
 ## Citation

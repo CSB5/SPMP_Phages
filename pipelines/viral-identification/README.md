@@ -7,12 +7,12 @@ This is a bioinformatics pipeline for identifying non-redundant viral population
 This pipeline performs the following steps:
 
 1. **VirSorter2+CheckV**
-  - a. Viral prediction (VirSorter2)
-  - b. Quality assessment and host trimming (CheckV)
-  - c. Filtering: retain viral sequences ≥ 5kbp and viral ≥ host genes
+    - a. Viral prediction (VirSorter2)
+    - b. Quality assessment and host trimming (CheckV)
+    - c. Filtering to retain viral sequences ≥ 5kbp and viral ≥ host genes
 2. **geNomad**
-  - a. Viral prediction (geNomad)
-  - b. Filtering: retain viral sequences ≥ 5kbp and FDR < 1%.
+    - a. Viral prediction (geNomad)
+    - b. Filtering to retain viral sequences ≥ 5kbp and FDR < 1%.
 3. **Aggregation:** Combines viral sequences across samples.
 4. **Dereplication:** Clusters viral sequences at 95% ANI over 85% aligned fraction.
 
@@ -96,6 +96,7 @@ By default, sample names are generated as:
 ```
 <sample_prefix>1, <sample_prefix>2, ..., <sample_prefix><num_samples>
 ```
+This can be changed by modifying the `SAMPLES` parameter in `vir-id.smk`.
 
 ### 6.2 Parameters
 
