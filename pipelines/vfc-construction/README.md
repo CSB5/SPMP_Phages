@@ -1,8 +1,8 @@
-# VFC Construction Pipeline
+# Constructing viral family-level clusters
 
 This is a bioinformatics pipeline for constructing viral clusters (VCs) via hierarchical clustering of a set of input vOTUs and reference vOTUs with known taxonomic assignments. It estimates viral genome completeness using CheckV, defines protein clusters (PCs), and performs UPGMA clustering on high-quality and complete vOTUs based on % shared distinct PCs.
 
-Inspection of reference vOTU clustering at different distance thresholds led to viral family-level clusters (VFCs) being defined at 20% shared PCs. Medium-quality vOTUs are subsequently recruited into the VFCs if they share 30% PCs with members of that VFC (this threshold was chosen to minimize ambiguous assignments to >1 VFC).
+Inspection of reference vOTU clustering at different distance thresholds led to viral family-level clusters (VFCs) being defined at 20% shared PCs. Medium-quality vOTUs are subsequently recruited into the VFCs if they share 30% PCs with members of that VFC, a threshold chosen to minimize ambiguous assignments to >1 VFC.
 
 ## 1. Overview
 
@@ -13,7 +13,7 @@ This pipeline performs the following steps:
 3. **Protein clustering:** Construction of protein clusters (PCs) from protein sequences using MCL.
 4. **Similarity calculation:** Computation of pairwise similarities (percentage of shared distinct PCs) between all pairs of medium-quality and above vOTUs.
 5. **Hierarchical clustering:** UPGMA clustering of high-quality and above (≥90% complete) vOTUs only.
-6. **Dendrogram cutting:** Cluster labels (VCs) are generated at a range of distance thresholds, which are manually inspected to define viral family-level clusters (VFCs).
+6. **Dendrogram cutting:** Cluster labels (VCs) are generated across a range of distance thresholds, which are manually inspected to define viral family-level clusters (VFCs).
 7. **Recruitment:** Medium-quality (50-90% complete) vOTUs are recruited into VFCs if they share at least 30% PCs with members of that VFC.
 
 ## 2. Directory structure
@@ -73,8 +73,6 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ### 5.2 Install dependencies
 
-Create and activate a new conda environment:
-
 ```bash
 conda create -n vfc -c conda-forge -c bioconda snakemake=5.26.0 checkv=1.0.1 genomad=1.8.1 seqtk=1.4 diamond=2.1.8 mcl=22.282 pandas=2.2.0 numpy=1.26.3 scipy=1.12.0
 conda activate vfc
@@ -82,9 +80,9 @@ conda activate vfc
 
 ### 5.3 Download databases
 
-* **[CheckV database](https://bitbucket.org/berkeleylab/checkv/src/master/#markdown-header-checkv-database)**
+* **[CheckV](https://bitbucket.org/berkeleylab/checkv/src/master/#markdown-header-checkv-database)**
 
-* **[geNomad database](https://portal.nersc.gov/genomad/quickstart.html#downloading-the-database):**
+* **[geNomad](https://portal.nersc.gov/genomad/quickstart.html#downloading-the-database):**
   Save `genomad_db/`, or a symlink to it, in the `resources/` directory.
 
 ## 6. Usage

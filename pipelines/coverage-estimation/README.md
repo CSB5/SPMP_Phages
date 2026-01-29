@@ -1,14 +1,12 @@
-# Prevalence & Abundance Estimation Pipeline
+# Estimating prevalence and abundance in metagenomic samples
 
 This is a bioinformatics pipeline for mean coverage and relative abundance estimation of vOTUs in a set of samples. It maps a sample's Illumina sequencing reads to input vOTUs and runs custom scripts for BAM filtering and clipped coverage computation. vOTUs passing a coverage breadth threshold (default: 70%) are considered present in a sample, and their relative abundances (based on mean coverage) are computed.
 
-An identical pipeline was run on non-viral contigs, used for determining null distribution thresholds for viral replication in viral-enriched samples.
+An identical pipeline was run on non-viral contigs, used for determining thresholds for viral replication in viral-enriched samples.
 
 A similar pipeline was constructed to estimate MAG mean coverages, used for vOTU versus host MAG coverage ratios. Here,
 * Only MAGs assembled from the same sample were used as reference.
 * A coverage breadth threshold was not set.
-
-A similar pipeline was used to map reads to a database comprising all vOTUs and dereplicated MAGs with prophages removed. Reads mapping only to vOTUs were retained, and variant calling was performed using LoFreq for downstream pN/pS analysis.
 
 ## 1. Overview
 
@@ -68,8 +66,6 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ### 5.2 Install dependencies
 
-Create and activate a new conda environment:
-
 ```bash
 conda create -n cov-est -c conda-forge -c bioconda snakemake=7.32.4 bwa=0.7.17 samtools=1.19.2 pandas=2.2.0 pysam=0.22.1
 conda activate cov-est
@@ -79,7 +75,9 @@ conda activate cov-est
 
 ### 6.1 Inputs
 
-The pipeline requires a reference FASTA and paired-end Illumina sequencing read files as input. The following settings are defined in `config/config.yaml`:
+The pipeline requires a reference FASTA and paired-end Illumina sequencing read files as input.
+
+The following settings are defined in `config/config.yaml`:
 
 * Reference FASTA (`reference_fasta`)
 * Prefix for id and len of references (`ref_prefix`)
@@ -91,7 +89,7 @@ The pipeline requires a reference FASTA and paired-end Illumina sequencing read 
 * R1 filename format (`reads_r1`)
 * R2 filename format (`reads_r2`)
 
-Currently, sample names are generated as:
+By default, sample names are generated as:
   ```
   <sample_prefix>1, <sample_prefix>2, ..., <sample_prefix><num_samples>
   ```
