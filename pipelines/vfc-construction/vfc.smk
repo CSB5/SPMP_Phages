@@ -18,7 +18,7 @@ Notes:
     - Proteins are clustered using MCL with ANI*AF as similarity measure.
     - >=90% complete vOTUs are hierarchically clustered using UPGMA with
       (100 - mean % shared distinct PCs) as distance measure.
-    - 50-90% complete vOTUs are recruited to VCs at d=80 (20% shared PCs).
+    - 50-90% complete vOTUs are recruited to d=80 VCs.
 ================================================================================
 """
 
