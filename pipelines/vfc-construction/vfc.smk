@@ -10,35 +10,35 @@ Citation:    See README.md for citation instructions.
 Usage:
     snakemake -s vfc.smk --cores 48
 
-Inputs:
-    - data/v95.fna
-    - data/ref_fams95.fna
+Inputs (paths specified in config.yaml):
+    - v95.fna: input vOTUs
+    - ref_fams95.fna: reference vOTUs with known taxonomic assignments
 
 Notes:
     - Proteins are clustered using MCL with ANI*AF as similarity measure.
     - >=90% complete vOTUs are hierarchically clustered using UPGMA with
       (100 - mean % shared distinct PCs) as distance measure.
-    - 50-90% complete vOTUs are recruited to d=80 VCs.
+    - 50-90% complete vOTUs are recruited to d=80 VCs if they have 30% shared
+      PCs with members of that VC.
 ================================================================================
 """
 
 import pandas as pd
 
-GENOMAD_DB = "resources/genomad_db"
-
-THREADS_L = 48
-THREADS_M = 24
-
-DATASETS = ["v95", "ref_fams95"]
+configfile: "config.yaml"
+DATASETS = list(config["datasets"].keys())
+THREADS_L = config["threads_L"]
+THREADS_M = config["threads_M"]
 
 rule all:
     input:
-        "results/vr95_c50-upgma.tsv"
+        "results/vr_c50-upgma.tsv"
 
 # --- Completeness estimation ---
 
 rule checkv:
-    input: "data/{dataset}.fna"
+    input:
+        fasta = lambda wildcards: config["datasets"][wildcards.dataset]
     output:
         dir = directory("results/checkv_{dataset}"),
         table = "results/checkv_{dataset}/quality_summary.tsv"
@@ -58,7 +58,7 @@ rule filter_completeness_50:
 rule get_fasta_from_list:
     input:
         list = "results/{dataset}_c50.list",
-        fasta = "data/{dataset}.fna"
+        fasta = lambda wildcards: config["datasets"][wildcards.dataset]
     output: "results/{dataset}_c50.fna"
     shell:
         "seqtk subseq {input.fasta} {input.list} > {output}"
@@ -68,24 +68,26 @@ rule genomad:
     output:
         dir = directory("results/{dataset}_c50_ganno"),
         faa = "results/{dataset}_c50_ganno/{dataset}_c50_annotate/{dataset}_c50_proteins.faa"
+    params:
+        db = config["genomad_db"]
     threads: THREADS_M
     shell:
-        "genomad annotate -t {threads} {input} {output.dir} {GENOMAD_DB}"
+        "genomad annotate -t {threads} {input} {output.dir} {params.db}"
 
 # --- Generation of protein clusters ---
 
 rule combine_proteins:
     input:
         proteins = expand("results/{ds}_c50_ganno/{ds}_c50_annotate/{ds}_c50_proteins.faa", ds=DATASETS)
-    output: "results/vr95_c50.faa"
+    output: "results/vr_c50.faa"
     shell:
         "cat {input.proteins} > {output}"
 
 rule diamond_blastp:
-    input: "results/vr95_c50.faa"
-    output: "results/vr95_c50-blastp.tsv"
+    input: "results/vr_c50.faa"
+    output: "results/vr_c50-blastp.tsv"
     params:
-        db = "results/vr95_c50"
+        db = "results/vr_c50"
     threads: THREADS_L
     shell:
         """
@@ -96,41 +98,41 @@ rule diamond_blastp:
         """
 
 rule mcl_clustering:
-    input: "results/vr95_c50-blastp.tsv"
-    output: "results/vr95_c50-blastp.mcl"
+    input: "results/vr_c50-blastp.tsv"
+    output: "results/vr_c50-blastp.mcl"
     threads: THREADS_L
     shell:
         """
-        awk '{{OFS = "\\t"}} NR>3 {{print $1, $2, $3*$4}}' {input} > results/vr95_c50-blastp.abc
-        mcl results/vr95_c50-blastp.abc --abc -I 2 -te {threads} -o {output}
+        awk '{{OFS = "\\t"}} NR>3 {{print $1, $2, $3*$4}}' {input} > results/vr_c50-blastp.abc
+        mcl results/vr_c50-blastp.abc --abc -I 2 -te {threads} -o {output}
         """
 
 # --- Computation of pairwise similarities ---
 
 rule get_all_proteins:
     input:
-        faa = "results/vr95_c50.faa"
+        faa = "results/vr_c50.faa"
     output:
-        list = "results/vr95_c50-prot.list"
+        list = "results/vr_c50-prot.list"
     shell:
         "grep '>' {input.faa} | awk '{{print $1}}' | tr -d '>' > {output.list}"
 
 rule get_shared_proteins:
     input:
-        mcl = "results/vr95_c50-blastp.mcl",
-        list = "results/vr95_c50-prot.list"
+        mcl = "results/vr_c50-blastp.mcl",
+        list = "results/vr_c50-prot.list"
     output:
-        pairs = "results/vr95_c50-pairs.tsv",
-        pcs = "results/vr95_c50-PCs.tsv"
+        pairs = "results/vr_c50-pairs.tsv",
+        pcs = "results/vr_c50-PCs.tsv"
     shell:
-        "python scripts/get_pair_counts.py --mcl {input.mcl} --prot {input.list} --n_pc 1 --out_pc {output.pcs} --out_sim {output.pairs}"
+        "python ../scripts/get_pair_counts.py --mcl {input.mcl} --prot {input.list} --n_pc 1 --out_pc {output.pcs} --out_sim {output.pairs}"
 
 # --- Hierarchical clustering of >=90% complete vOTUs ---
 
 rule filter_completeness_90:
     input: 
         tables = expand("results/checkv_{ds}/quality_summary.tsv", ds=DATASETS)
-    output: "results/vr95_c90.list"
+    output: "results/vr_c90.list"
     run:
         c90_ids = []
         for table in input.tables:
@@ -145,11 +147,11 @@ rule filter_completeness_90:
 
 rule get_completeness_90_pairs:
     input:
-        pairs = "results/vr95_c50-pairs.tsv",
-        c90_list = "results/vr95_c90.list"
+        pairs = "results/vr_c50-pairs.tsv",
+        c90_list = "results/vr_c90.list"
     output:
-        pairs = "results/vr95_c90-pairs.tsv",
-        abc = "results/vr95_c90-pairs.abc"
+        pairs = "results/vr_c90-pairs.tsv",
+        abc = "results/vr_c90-pairs.abc"
     run:
         df = pd.read_csv(input.pairs, sep='\t')
         c90 = pd.read_csv(input.c90_list, names=['v']).v.tolist()
@@ -160,20 +162,20 @@ rule get_completeness_90_pairs:
 
 rule run_hierarchical_clustering:
     input:
-        abc = "results/vr95_c90-pairs.abc",
-        c90_list = "results/vr95_c90.list"
-    output: "results/vr95_c90-upgma.tsv"
-    shell: "python scripts/perform_hierarchical_clustering.py -i {input.abc} -l {input.c90_list} -o {output}"
+        abc = "results/vr_c90-pairs.abc",
+        c90_list = "results/vr_c90.list"
+    output: "results/vr_c90-upgma.tsv"
+    shell: "python ../scripts/perform_hierarchical_clustering.py -i {input.abc} -l {input.c90_list} -o {output}"
 
 # --- Recruitment of 50-90% complete vOTUs into VCs at d=80 ---
 
 rule recruit_50_90:
     input:
-        pairs_50 = "results/vr95_c50-pairs.tsv",
-        c90_list = "results/vr95_c90.list",
-        upgma_90 = "results/vr95_c90-upgma.tsv"
+        pairs_50 = "results/vr_c50-pairs.tsv",
+        c90_list = "results/vr_c90.list",
+        upgma_90 = "results/vr_c90-upgma.tsv"
     output:
-        "results/vr95_c50-upgma.tsv"
+        "results/vr_c50-upgma.tsv"
     run:
         df = pd.read_csv(input.pairs_50, sep='\t')
         c90 = pd.read_csv(input.c90_list, names=['v']).v.tolist()

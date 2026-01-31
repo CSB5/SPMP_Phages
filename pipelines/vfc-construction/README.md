@@ -1,8 +1,10 @@
 # Constructing viral family-level clusters
 
-This is a bioinformatics pipeline for constructing viral clusters (VCs) via hierarchical clustering of a set of input vOTUs and reference vOTUs with known taxonomic assignments. It estimates viral genome completeness using CheckV, defines protein clusters (PCs), and performs UPGMA clustering on high-quality and complete vOTUs based on % shared distinct PCs.
+See Supplementary Fig. 4 of our [preprint](https://www.biorxiv.org/content/10.64898/2026.01.26.701711v1.full) for a schematic of this pipeline.
 
-Inspection of reference vOTU clustering at different distance thresholds led to viral family-level clusters (VFCs) being defined at 20% shared PCs. Medium-quality vOTUs are subsequently recruited into the VFCs if they share 30% PCs with members of that VFC, a threshold chosen to minimize ambiguous assignments to >1 VFC.
+This is a bioinformatics pipeline for constructing viral clusters (VCs) by hierarchical clustering of a set of input vOTUs and reference vOTUs with known taxonomic assignments. It estimates viral genome completeness using CheckV, defines protein clusters (PCs), and performs UPGMA clustering on high-quality and complete vOTUs based on % shared distinct PCs.
+
+Inspection of VC assignments of reference vOTUs at different distance thresholds led to viral family-level clusters (VFCs) being defined at 20% shared PCs (see Supplementary Fig. 5 of our [preprint](https://www.biorxiv.org/content/10.64898/2026.01.26.701711v1.full)). Medium-quality vOTUs are subsequently recruited into VFCs if they have at least 30% shared PCs with members of that VFC, a threshold chosen to minimize ambiguous assignments to >1 VFC.
 
 ## 1. Overview
 
@@ -22,15 +24,16 @@ This pipeline performs the following steps:
 vfc-construction/
 ├── README.md
 ├── vfc.smk
-├── scripts/
-│   ├── get_pair_counts.py
-│   └── perform_hierarchical_clustering.py
-├── data/
-│   ├── v95.fna         # input vOTU sequences (not included)
-│   └── ref_fams95.fna  # reference vOTU sequences with known taxonomic assignments (not included)
-├── resources/
-│   └── genomad_db/     # geNomad database (not included)
-└── results/            # outputs (not included)
+├── config.yaml
+└── results/        # outputs (not included)
+data/
+├── v95.fna         # input vOTU sequences (not included)
+└── ref_fams95.fna  # reference vOTU sequences with known taxonomic assignments (not included)
+scripts/
+├── get_pair_counts.py
+└── perform_hierarchical_clustering.py
+resources/
+└── genomad_db/     # geNomad database (not included)
 ```
 
 ## 3. Dependencies
@@ -68,7 +71,6 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ```bash
    git clone https://github.com/CSB5/SPMP_Phages.git
-   cd pipelines/vfc-construction
 ```
 
 ### 5.2 Install dependencies
@@ -83,20 +85,20 @@ conda activate vfc
 * **[CheckV](https://bitbucket.org/berkeleylab/checkv/src/master/#markdown-header-checkv-database)**
 
 * **[geNomad](https://portal.nersc.gov/genomad/quickstart.html#downloading-the-database):**
-  Save `genomad_db/`, or a symlink to it, in the `resources/` directory.
+  The geNomad database path should be specified in `config.yaml`.
 
 ## 6. Usage
 
-The pipeline requires two primary input FASTA files. Save them in the `data/` directory.
+The pipeline requires two primary input FASTA files. Specify their paths in `config.yaml`.
 
 | File | Description |
 | --- | --- |
 | `v95.fna` | Input vOTUs |
 | `ref_fams95.fna` | Reference vOTUs with known taxonomic assignments |
 
-To execute the pipeline, run the following command from the project root:
-
+Navigate to the project subdirectory to run the pipeline:
 ```bash
+cd pipelines/vfc-construction
 snakemake -s vfc.smk --cores 48
 ```
 
@@ -104,7 +106,7 @@ snakemake -s vfc.smk --cores 48
 
 All results are saved in the `results/` directory. The primary output is:
 
-* **`vr95_c50-upgma.tsv`:**
+* **`vr_c50-upgma.tsv`:**
   A tab-separated table containing viral cluster (VC) labels for all ≥90% complete and some 50-90% complete input and reference vOTUs, across a range of distance thresholds. Columns like `VC60` represent VCs formed at a 60% distance threshold (40% shared distinct PCs). These hierarchical clusters enable comparison with reference clade assignments, facilitating analysis of viral groups at the genus, family, and order levels.
 
 ## 8. Citation

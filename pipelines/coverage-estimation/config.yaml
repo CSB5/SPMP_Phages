@@ -1,0 +1,8 @@
+reference_fasta: "../data/v95.fna"
+ref_header_prefix: "votu"
+output_prefix: "votu-bulk"
+
+min_id: 95
+min_cov: 80
+check_proper_pair: 1
+covthresh: 70

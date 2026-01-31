@@ -1,0 +1,6 @@
+datasets:
+  v95: "../data/v95.fna"
+  ref_fams95: "../data/ref_fams95.fna"
+threads_L: 48
+threads_M: 24
+genomad_db: "../resources/genomad_db"

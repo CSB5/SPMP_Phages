@@ -4,7 +4,7 @@ This is a bioinformatics pipeline for mean coverage and relative abundance estim
 
 An identical pipeline was run on non-viral contigs, used for determining thresholds for viral replication in viral-enriched samples.
 
-A similar pipeline was constructed to estimate MAG mean coverages, used for vOTU versus host MAG coverage ratios. Here,
+A similar pipeline was constructed to estimate MAG mean coverages, used for vOTU versus host MAG coverage ratios. Here:
 * Only MAGs assembled from the same sample were used as reference.
 * A coverage breadth threshold was not set.
 
@@ -13,7 +13,7 @@ A similar pipeline was constructed to estimate MAG mean coverages, used for vOTU
 This pipeline performs the following steps:
 
 1. **Read mapping:** Paired-end Illumina reads are mapped to input vOTUs using BWA-MEM.
-2. **BAM filtering:** Reads are filtered based on mapping identity, coverage, and proper pairing.
+2. **BAM filtering:** Reads are filtered based on mapping identity (default: 95%), coverage (default: 80%), and proper pairing.
 3. **Clipped coverage computation:** The mean coverage over each sequence is computed after clipping the top and bottom 10% of base coverage values.
 4. **vOTU detection and abundance estimation:** vOTUs passing a coverage breadth threshold (default: 70%) are considered present, and their relative abundances are computed.
 5. **Aggregation of results:** The mean coverage and relative abundance estimates are aggregated across samples.
@@ -24,15 +24,15 @@ This pipeline performs the following steps:
 coverage-estimation/
 ├── README.md
 ├── cov-est.smk
-├── config/
-│   └── config.yaml
-├── scripts/
-│   ├── bamfilter.py             # BAM filtering
-│   └── get_clipped_coverage.py  # clipped coverage computation
-├── data/
-│   ├── <v95.fna>                # input vOTUs (not included)
-│   └── <reads/>                 # directory containing Illumina reads (not included)
-└── results/                     # outputs (not included)
+├── config.yaml
+├── samples.tsv              # table of sample IDs and read FASTQ path names
+└── results/                 # outputs (not included)
+data/
+├── v95.fna                  # input vOTUs (not included)
+└── reads/                   # directory containing Illumina reads (not included)
+scripts/
+├── bamfilter.py             # BAM filtering
+└── get_clipped_coverage.py  # clipped coverage computation
 ```
 
 ## 3. Dependencies
@@ -51,7 +51,6 @@ This pipeline is built using **Snakemake**. All software dependencies are manage
 This pipeline is designed for high-performance computing (HPC) environments.
 
 ### Hardware requirements
-
 * **Memory:** Minimum 16 GB RAM
 * **CPU:** Scalable from 8 to 24+ cores
 
@@ -60,8 +59,7 @@ This pipeline is designed for high-performance computing (HPC) environments.
 ### 5.1 Clone the repository
 
 ```bash
-   git clone https://github.com/CSB5/SPMP_Phages.git
-   cd pipelines/coverage-estimation
+git clone https://github.com/CSB5/SPMP_Phages.git
 ```
 
 ### 5.2 Install dependencies
@@ -75,30 +73,18 @@ conda activate cov-est
 
 ### 6.1 Inputs
 
-The pipeline requires a reference FASTA and paired-end Illumina sequencing read files as input.
+The pipeline requires a reference FASTA and a set of paired-end Illumina sequencing read files as input.
 
-The following settings are defined in `config/config.yaml`:
+Modify `sample_id`, `R1_path` and `R2_path` in `samples.tsv` accordingly.
 
+The following settings are defined in `config.yaml`:
 * Reference FASTA (`reference_fasta`)
-* Prefix for id and len of references (`ref_prefix`)
-* Final output filename prefix (`output_prefix`)
-* Number of samples (`num_samples`)
-* Sample name prefix (`sample_prefix`)
-* Sample number padding (`padding`)
-* Directory containing sequencing read files (`reads_dir`)
-* R1 filename format (`reads_r1`)
-* R2 filename format (`reads_r2`)
-
-By default, sample names are generated as:
-  ```
-  <sample_prefix>1, <sample_prefix>2, ..., <sample_prefix><num_samples>
-  ```
-This can be changed by modifying the `SAMPLES` parameter in `cov-est.smk`.
+* Reference header prefix used in output file (`ref_prefix`)
+* Output filename prefix (`output_prefix`)
 
 ### 6.2 Parameters
 
-The following parameters are defined in `config/config.yaml`:
-
+The following parameters are defined in `config.yaml`:
 * Minimum % identity of read alignment (`min_id`, default: 95)
 * Minimum % coverage of read (`min_cov`, default: 80)
 * Whether to check if reads are properly paired (`check_proper_pair`, default: 1)
@@ -106,9 +92,9 @@ The following parameters are defined in `config/config.yaml`:
 
 ### 6.3 Running
 
-To execute the pipeline, run the following command from the project root:
-
+Navigate to the project subdirectory to run the pipeline:
 ```bash
+cd pipelines/coverage-estimation
 snakemake -s cov-est.smk --cores 24
 ```
 

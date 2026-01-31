@@ -1,18 +1,18 @@
 # Identifying viral OTUs from metagenomic assemblies
 
-This is a bioinformatics pipeline for identifying non-redundant viral populations from metagenomic assemblies leveraging **VirSorter2**, **CheckV**, and **geNomad**. Predicted viral sequences are filtered, aggregated across samples, and dereplicated at 95% ANI over 85% aligned fraction to generate a set of viral operational taxonomic units (vOTUs) for downstream analyses.
+This is a bioinformatics pipeline for identifying non-redundant viral populations from metagenomic assemblies, leveraging **VirSorter2**, **CheckV**, and **geNomad**. Predicted viral sequences are filtered, aggregated across samples, and dereplicated at 95% ANI over 85% aligned fraction to generate a set of viral operational taxonomic units (vOTUs) for downstream analyses.
 
 ## 1. Overview
 
 This pipeline performs the following steps:
 
 1. **VirSorter2+CheckV**
-    - a. Viral prediction (VirSorter2)
+    - a. Viral prediction (VirSorter2 with options `--keep-original-seq`)
     - b. Quality assessment and host trimming (CheckV)
     - c. Filtering to retain viral sequences ≥ 5kbp and viral ≥ host genes
 2. **geNomad**
-    - a. Viral prediction (geNomad)
-    - b. Filtering to retain viral sequences ≥ 5kbp and FDR < 1%.
+    - a. Viral prediction (geNomad with options `--enable-score-calibration`)
+    - b. Filtering to retain viral sequences ≥ 5kbp and FDR < 1%
 3. **Aggregation:** Combines viral sequences across samples.
 4. **Dereplication:** Clusters viral sequences at 95% ANI over 85% aligned fraction.
 
@@ -22,13 +22,13 @@ This pipeline performs the following steps:
 viral-identification/
 ├── README.md
 ├── vir-id.smk
-├── config/
-│   └── config.yaml
-├── data/
-│   └── <sample.fna>  # metagenomic assemblies (not included)
-├── resources/
-│   └── genomad_db/   # geNomad database (not included)
-└── results/          # outputs (not included)
+├── config.yaml
+├── samples.tsv  # table of sample IDs and metagenomic assembly path names
+└── results/     # outputs (not included)
+data/
+└── contigs/     # metagenomic assemblies (not included)
+resources/
+└── genomad_db/  # geNomad database (not included)
 ```
 
 ## 3. Dependencies
@@ -58,7 +58,6 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ```bash
 git clone https://github.com/CSB5/SPMP_Phages.git
-cd pipelines/viral-identification
 ```
 
 ### 5.2 Install dependencies
@@ -75,44 +74,23 @@ conda activate vir-id
 * **[CheckV](https://bitbucket.org/berkeleylab/checkv/src/master/#markdown-header-checkv-database)**
 
 * **[geNomad](https://portal.nersc.gov/genomad/quickstart.html#downloading-the-database):**
-  The geNomad database path should be specified in `config/config.yaml`.
+  The geNomad database path should be specified in `config.yaml`.
 
 ## 6. Usage
 
-### 6.1 Inputs
+The pipeline requires a set of metagenomic assembly files as input. Modify `sample_id`, `contigs_path`, and `contig_header_prefix` in `samples.tsv` accordingly.
 
-The pipeline requires a set of metagenomic assembly files as input.
-
-The following settings are defined in `config/config.yaml`:
-
-* Number of samples (`num_samples`)
-* Sample name prefix (`sample_prefix`)
-* Sample number padding (`padding`)
-* Sample directory (`contigs_dir`)
-* Sample filename suffix (`contigs_filename`)
-* Contig header prefix (`contig_name_prefix`)
-
-By default, sample names are generated as:
-```
-<sample_prefix>1, <sample_prefix>2, ..., <sample_prefix><num_samples>
-```
-This can be changed by modifying the `SAMPLES` parameter in `vir-id.smk`.
-
-### 6.2 Parameters
-
-The following parameters are defined in `config/config.yaml`:
-
+The following parameters are defined in `config.yaml`:
 * Minimum viral sequence length (`min_len`, default: 5000)
 * VirSorter2 minimum score (`min_vs2_score`, default: 0.5)
 * geNomad maximum FDR (`max_gmd_fdr`, default: 0.01)
 * geNomad database path (`genomad_db`)
 
-### 6.3 Running
-
-To execute the pipeline, run the following command from the project root:
-  ```bash
-  snakemake -s vir-id.smk --cores 48
-  ```
+Navigate to the project subdirectory to run the pipeline:
+```bash
+cd pipelines/viral-identification
+snakemake -s vir-id.smk --cores 48
+```
 
 ## 7. Outputs
 

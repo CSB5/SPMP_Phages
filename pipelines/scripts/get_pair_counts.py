@@ -8,7 +8,7 @@ Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/vfc-construction
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:
-    python get_pair_counts.py --mcl <pcs.mcl> --prot <proteins.list> --n_pc <num_pc> --out_pc <vr95_c50-PCs.tsv> --out_sim <vr95_c50-pairs.tsv>
+    python get_pair_counts.py --mcl <pcs.mcl> --prot <proteins.list> --n_pc <num_pc> --out_pc <vr_c50-PCs.tsv> --out_sim <vr_c50-pairs.tsv>
 
 Notes:
     - Pairwise similarities are defined as the mean % shared distinct protein

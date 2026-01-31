@@ -10,18 +10,25 @@ Usage:
     snakemake -s vir-id.smk --cores 48
 
 Inputs:
-    - Metagenomic assembly files (modify config.yaml and/or `SAMPLES` variable
-      to match the sample names)
+    - Metagenomic assembly files (specified in samples.tsv)
+
+Notes:
+    - For legacy reasons, contig_header_prefix is removed from VirSorter2+CheckV
+      identified sequences to reduce the length of viral ID names.
 ================================================================================
 """
 
-configfile: "config/config.yaml"
-
-# sample names
-SAMPLES = [config["sample_prefix"] + f"{n:0{config['padding']}d}" for n in range(1, config["num_samples"] + 1)]
+configfile: "config.yaml"
 
 import pandas as pd
 from Bio import SeqIO
+
+samples_df = pd.read_csv("samples.tsv", sep="\t").set_index("sample_id", drop=False)
+
+def get_contigs(wildcards):
+    return samples_df.loc[wildcards.sample, "contigs_path"]
+def get_contig_header_prefix(wildcards):
+    return samples_df.loc[wildcards.sample, "contig_header_prefix"]
 
 rule all:
     input:
@@ -32,7 +39,7 @@ rule all:
 
 rule vs2:
     input:
-        config["contigs_dir"] + "{sample}" + config["contigs_filename"]
+        fasta = get_contigs
     output:
         dir = directory("results/vs2-checkv/{sample}/vs2"),
         fna = "results/vs2-checkv/{sample}/vs2/final-viral-combined.fa"
@@ -41,7 +48,7 @@ rule vs2:
         s=config.get("min_vs2_score", 0.5)
     threads: 16
     shell:
-        "virsorter run --keep-original-seq -i {input} -w {output.dir} "
+        "virsorter run --keep-original-seq -i {input.fasta} -w {output.dir} "
         "--include-groups dsDNAphage,ssDNA --min-length {params.l} --min-score {params.s} -j {threads} all"
 
 # --- CheckV ---
@@ -64,7 +71,6 @@ rule get_checkv_out:
     output:
         "results/vs2-checkv/{sample}/checkv_out.fna"
     shell:
-        # merge and clean headers (removing text after space)
         "cat {input} | sed 's/ .*//' > {output}"
 
 rule checkv_2:
@@ -88,7 +94,7 @@ rule filter_and_rename:
         tsv = "results/vs2-checkv/{sample}/filtered-info.tsv"
     params:
         min_len = config.get("min_len", 5000),
-        prefix_to_remove = config.get("contig_name_prefix", "")
+        prefix_to_remove = get_contig_header_prefix
     run:
         df = pd.read_csv(input.tsv, sep='\t')
         filtered_df = df[(df['contig_length'] >= params.min_len) & (df['viral_genes'] >= df['host_genes'])].copy()
@@ -114,16 +120,16 @@ rule filter_and_rename:
 
 rule genomad:
     input:
-        config["contigs_dir"] + "{sample}" + config["contigs_filename"]
+        fasta = get_contigs
     output:
         dir = directory("results/genomad/{sample}"),
         fna = "results/genomad/{sample}/{sample}_summary/{sample}_virus.fna",
         tsv = "results/genomad/{sample}/{sample}_summary/{sample}_virus_summary.tsv"
     params:
-        db = config.get("genomad_db", "")
+        db = config["genomad_db"]
     threads: 16
     shell:
-        "genomad end-to-end -t {threads} --enable-score-calibration {input} {output.dir} {params.db}"
+        "genomad end-to-end -t {threads} --enable-score-calibration {input.fasta} {output.dir} {params.db}"
 
 # --- Filter length >= min_len and FDR < max_gmd_fdr ---
 
@@ -164,8 +170,8 @@ rule filter_genomad:
 
 rule get_viral_sequences:
     input:
-        genomad = expand("results/genomad/{sample}/gvirs.flt.fna", sample=SAMPLES),
-        vs2_checkv = expand("results/vs2-checkv/{sample}/filtered.fna", sample=SAMPLES)
+        genomad = expand("results/genomad/{sample}/gvirs.flt.fna", sample=samples_df.index),
+        vs2_checkv = expand("results/vs2-checkv/{sample}/filtered.fna", sample=samples_df.index)
     output:
         "results/v.fna"
     shell:

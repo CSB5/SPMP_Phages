@@ -12,15 +12,21 @@ Usage:
 ================================================================================
 """
 
-configfile: "config/config.yaml"
-
-SAMPLES = [config["sample_prefix"] + str(n).zfill(config["padding"]) for n in range(1, config["num_samples"] + 1)]
-
+configfile: "config.yaml"
 REF = config["reference_fasta"]
+
+import pandas as pd
+
+samples_df = pd.read_csv("samples.tsv", sep="\t").set_index("sample_id", drop=False)
+
+def get_R1(wildcards):
+    return samples_df.loc[wildcards.sample, "R1_path"]
+def get_R2(wildcards):
+    return samples_df.loc[wildcards.sample, "R2_path"]
 
 rule all:
     input:
-        "results/" + config["output_prefix"] + "-abundance.tsv"
+        "results/" + config["output_prefix"] + "_abundance.tsv"
 
 # --- Map reads to reference ---
 
@@ -36,8 +42,8 @@ rule bwa_mem:
     input:
         ref = REF,
         idx = multiext(REF, ".amb", ".ann", ".bwt", ".pac", ".sa"),
-        r1 = config["reads_dir"] + "{sample}" + config["reads_r1"],
-        r2 = config["reads_dir"] + "{sample}" + config["reads_r2"]
+        r1 = get_R1,
+        r2 = get_R2
     output:
         temp("results/{sample}.sam")
     threads: 8
@@ -50,24 +56,24 @@ rule view_sort:
     input:
         "results/{sample}.sam"
     output:
-        temp("results/{sample}.bam")
+        temp("results/{sample}.sorted.bam")
     threads: 8
     shell:
         "samtools view -b -F 256 -@ {threads} {input} | samtools sort -@ {threads} - > {output}"
 
 rule index_bam:
     input:
-        "results/{sample}.bam"
+        "results/{sample}.sorted.bam"
     output:
-        temp("results/{sample}.bam.bai")
+        temp("results/{sample}.sorted.bam.bai")
     threads: 8
     shell:
         "samtools index -@ {threads} {input} {output}"
 
 rule filter_bam:
     input:
-        bam = "results/{sample}.bam",
-        bai = "results/{sample}.bam.bai"
+        bam = "results/{sample}.sorted.bam",
+        bai = "results/{sample}.sorted.bam.bai"
     output:
         "results/{sample}_flt.bam"
     params:
@@ -76,7 +82,7 @@ rule filter_bam:
         check_proper_pair = config["check_proper_pair"]
     shell:
         """
-        python scripts/bamfilter.py -i {input.bam} -o {output} --min_id {params.min_id} \
+        python ../scripts/bamfilter.py -i {input.bam} -o {output} --min_id {params.min_id} \
         --min_cov {params.min_cov} --check_proper_pair {params.check_proper_pair}
         """
 
@@ -107,9 +113,9 @@ rule get_clipped_coverage:
     output:
         "results/{sample}_clippedcov.tsv"
     params:
-        prefix = config["ref_prefix"]
+        prefix = config["ref_header_prefix"]
     shell:
-        "python scripts/get_clipped_coverage.py -c {input.cov} -d {input.depth} -s {wildcards.sample} -p {params.prefix} -o {output}"
+        "python ../scripts/get_clipped_coverage.py -c {input.cov} -d {input.depth} -s {wildcards.sample} -p {params.prefix} -o {output}"
 
 # --- Detection and abundance estimation ---
 
@@ -121,7 +127,6 @@ rule detection_abundance:
     params:
         covthresh = config["covthresh"]
     run:
-        import pandas as pd
         df = pd.read_csv(input[0], sep='\t')
 
         df = df[df.covbreadth >= params.covthresh]
@@ -136,11 +141,10 @@ rule detection_abundance:
 
 rule combine_results:
     input:
-        expand("results/{sample}_abundance.tsv", sample=SAMPLES)
+        expand("results/{sample}_abundance.tsv", sample=samples_df.index)
     output:
-        "results/" + config["output_prefix"] + "-abundance.tsv"
+        "results/" + config["output_prefix"] + "_abundance.tsv"
     run:
-        import pandas as pd
         dfs = [pd.read_csv(tsv, sep='\t') for tsv in input]
         df = pd.concat(dfs)
         df.to_csv(output[0], sep='\t', index=False)

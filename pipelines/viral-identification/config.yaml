@@ -1,0 +1,4 @@
+min_len: 5000
+min_vs2_score: 0.5
+max_gmd_fdr: 0.01
+genomad_db: "../resources/genomad_db"
