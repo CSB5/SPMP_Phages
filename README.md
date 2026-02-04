@@ -2,8 +2,8 @@
 
 Scripts used to generate the results and figures for the manuscript titled: "GuFi phages represent the most prevalent viral family-level clusters in the human gut microbiome".
 
-**Project status (29 Jan 2026):** This repository is being actively curated for manuscript submission.
-* **Available:** Core computational pipelines used to generate key results of the paper (viral OTUs, viral family-level clusters, prevalence and abundance estimation).
+**Project status (3 Feb 2026):** This repository is being actively curated for manuscript submission.
+* **Available:** Core computational pipelines used to generate key results of the paper (viral OTUs, viral family-level clusters, prevalence and abundance estimation, pN/pS analysis).
 * **In progress:** Additional analysis pipelines and figure-generation notebooks, to be released shortly.
 
 ## Available pipelines
@@ -11,6 +11,7 @@ Scripts used to generate the results and figures for the manuscript titled: "GuF
 * [Identifying viral OTUs from metagenomic assemblies](./pipelines/viral-identification/README.md)
 * [Constructing viral family-level clusters](./pipelines/vfc-construction/README.md)
 * [Estimating prevalence and abundance in metagenomic samples](./pipelines/coverage-estimation/README.md)
+* [Variant calling and pN/pS analysis](./pipelines/pNpS/README.md)
 
 ## Raw data availability
 

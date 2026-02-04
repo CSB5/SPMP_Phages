@@ -7,7 +7,7 @@ Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/coverage-estimation
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:
-    snakemake -s cov-est.smk --cores 24
+    snakemake -s cov-est.smk --cores 48
 
 ================================================================================
 """
@@ -52,14 +52,14 @@ rule bwa_mem:
 
 # --- Filter reads ---
 
-rule view_sort:
+rule filter_and_sort:
     input:
         "results/{sample}.sam"
     output:
         temp("results/{sample}.sorted.bam")
     threads: 8
     shell:
-        "samtools view -b -F 256 -@ {threads} {input} | samtools sort -@ {threads} - > {output}"
+        "samtools view -h -F 256 -u {input} | samtools sort -@ {threads} -o {output}"
 
 rule index_bam:
     input:
@@ -82,8 +82,10 @@ rule filter_bam:
         check_proper_pair = config["check_proper_pair"]
     shell:
         """
-        python ../scripts/bamfilter.py -i {input.bam} -o {output} --min_id {params.min_id} \
-        --min_cov {params.min_cov} --check_proper_pair {params.check_proper_pair}
+        python ../scripts/bamfilter.py \
+            -i {input.bam} -o {output} \
+            --min_id {params.min_id} --min_cov {params.min_cov} \
+            --check_proper_pair {params.check_proper_pair}
         """
 
 # --- Generate coverage and depth statistics ---

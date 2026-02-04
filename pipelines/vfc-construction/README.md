@@ -57,7 +57,7 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ### Hardware requirements
 * **Memory:** Minimum 32 GB RAM
-* **CPU:** Scalable from 8 to 48+ cores
+* **CPU:** Scalable from 16 to 48+ cores
 
 ### Resource utilization
 * **Dataset:** >30,000 input and >19,000 reference vOTUs
@@ -89,7 +89,7 @@ conda activate vfc
 
 ## 6. Usage
 
-The pipeline requires two primary input FASTA files. Specify their paths in `config.yaml`.
+The pipeline requires two input FASTA files. Specify their paths in `config.yaml`.
 
 | File | Description |
 | --- | --- |

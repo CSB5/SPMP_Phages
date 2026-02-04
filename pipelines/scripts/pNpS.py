@@ -1,38 +1,35 @@
 """
 ================================================================================
 File:        pNpS.py
-Description: Process coverage and VCF files for a sample to produce SNP, codon,
-             and pN/pS statistics.
+Description: Annotates VCF file and computes pN/pS statistics.
 Authors:     Windsor Koh, Hanrong Chen (chenhr@a-star.edu.sg)
 Repository:  https://github.com/CSB5/SPMP_Phages/pipelines/pNpS
 Citation:    See README.md for citation instructions.
 ================================================================================
 Usage:
     python pNpS.py --sample <sample_id> --gene_file <processed_genes.tsv> \
-                   --fasta_file <ref.fna> --cov_file <coverage.tsv> --cov_threshold <thresh> --vcf_file <in.vcf> \
-                   --vcf_out <annotated.vcf> --gene_pNpS <gene_pNpS.tsv>
+                   --fasta_file <ref.fna> --cov_file <coverage.tsv> --vcf_file <in.vcf> \
+                   --cov_threshold <thresh> --vcf_out <annotated.vcf> --gene_pNpS <gene_pNpS.tsv>
 
 Prerequisites:
-    - processed_genes.tsv should have been preprocessed using preprocess_gene_file_possible_sites().
-    - in.vcf should have 1 row per ALT allele at each site (comma-separated ALT fields should be preprocessed).
+    - <processed_genes.tsv> is the output of preprocess_gene_file_possible_sites().
+    - <in.vcf> should have 1 row per ALT allele at each site (comma-separated ALT fields are not accounted for).
 
 Notes:
     - Codon statistics are computed for each gene a SNP is in.
-    - Only sites with >1 allele are considered. Those with AF = 1 are discarded.
+    - Only sites with >1 allele are considered; those with AF = 1 are discarded.
     - Synonymous/nonsynonymous mutations are checked w.r.t. the reference allele, or the first ALT allele if the reference AF = 0.
     - Genetic codes 11, 4, and 15 can be used.
     - Pseudocounts are added to the number of observed S and NS before calculating pN/pS.
     - Stop codons are excluded from the pN/pS calculation.
-    - All sequences detected in the sample (coverage >= 70%) are returned, even if they have 0 SNPs.
+    - All sequences detected in the sample (default: 70% coverage breadth) are returned, even if they have 0 SNPs detected.
     - codon_starting_index is w.r.t. the forward strand (even when the gene is on the reverse strand). Codons are obtained by reverse_complement(seq[i:i+3]).
 ================================================================================
 """
 
 import pandas as pd
-import numpy as np
 from Bio import SeqIO
 import argparse
-import os
 
 # --- Process samtools coverage output to retain reference sequences satisfying coverage breadth threshold ---
 
@@ -289,7 +286,7 @@ def get_gene_pnps(gene_table, processed_vcf, cov_stats):
     return genes_merged
 
 def main():
-    parser = argparse.ArgumentParser(description='Compute codon and pN/pS statistics.')
+    parser = argparse.ArgumentParser(description='Annotate VCF file and compute pN/pS statistics.')
     parser.add_argument('--sample', required=True, help='Sample name')
     parser.add_argument('--cov_file', help='samtools coverage output')
     parser.add_argument('--vcf_file', help='VCF file')

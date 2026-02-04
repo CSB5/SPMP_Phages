@@ -52,7 +52,7 @@ This pipeline is designed for high-performance computing (HPC) environments.
 
 ### Hardware requirements
 * **Memory:** Minimum 16 GB RAM
-* **CPU:** Scalable from 8 to 24+ cores
+* **CPU:** Scalable from 8 to 48+ cores
 
 ## 5. Installation & Setup
 
@@ -95,7 +95,7 @@ The following parameters are defined in `config.yaml`:
 Navigate to the project subdirectory to run the pipeline:
 ```bash
 cd pipelines/coverage-estimation
-snakemake -s cov-est.smk --cores 24
+snakemake -s cov-est.smk --cores 48
 ```
 
 ## 7. Outputs

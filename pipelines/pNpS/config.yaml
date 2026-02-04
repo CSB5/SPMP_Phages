@@ -1,0 +1,10 @@
+reference_fasta: "../data/v95.fna"
+decoy_fasta: "../data/decoy_mags.fna"
+output_prefix: "votu"
+
+min_id: 95
+min_cov: 80
+check_proper_pair: 1
+covthresh: 70
+
+genomad_db: "../resources/genomad_db"
