@@ -121,19 +121,9 @@ rule filter_and_sort:
         samtools sort -@ {threads} -o {output}
         """
 
-rule index_bam:
-    input:
-        "results/{sample}.sorted.bam"
-    output:
-        temp("results/{sample}.sorted.bam.bai")
-    threads: 2
-    shell:
-        "samtools index -@ {threads} {input} {output}"
-
 rule filter_bam:
     input:
-        bam = "results/{sample}.sorted.bam",
-        bai = "results/{sample}.sorted.bam.bai"
+        bam = "results/{sample}.sorted.bam"
     output:
         "results/{sample}_flt.bam"
     params:

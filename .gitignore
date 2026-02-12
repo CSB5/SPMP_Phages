@@ -1,4 +1,3 @@
-pipelines/HiC-host-association/
 pipelines/**/data/**
 pipelines/**/results/**
 pipelines/**/resources/**
