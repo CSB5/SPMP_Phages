@@ -13,15 +13,9 @@ This repository contains core computational pipelines and analysis scripts used 
 
 ## Figure-generation scripts
 
-* [`notebooks/`](./figures/notebooks/): Python notebooks and R scripts to reproduce all figures in the manuscript.
-  * Python notebooks were run with **python version 3.10.11**.
-  * R scripts were run with **R version 4.5.0**.
-  
-  To reproduce the figures, clone this repository and execute the code from within this directory.
+* [notebooks](./figures/notebooks/): Python notebooks and R scripts to reproduce all figures in the manuscript (tested with python v3.10.11 and R v4.5.0). To reproduce the figures, clone this repository and execute the code from within this directory.
 
-* [`data/`](./figures/data/): Input data required by the scripts.
-
-  In addition, download the Supplementary Data files from Zenodo ([https://zenodo.org/records/18780256](https://zenodo.org/records/18780256)) and save them in this directory before running the code.
+* [data](./figures/data/): Input data files. Before executing the code, also download the Supplementary Data files from Zenodo and save them in this directory.
 
 ## Raw data availability
 
