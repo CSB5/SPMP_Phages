@@ -1,3 +1,6 @@
+figures/notebooks/.Rhistory
+figures/data/Supplementary_Data_*
+figures/data/GutMetagenomes_metadata.csv
 pipelines/**/data/**
 pipelines/**/results/**
 pipelines/**/resources/**

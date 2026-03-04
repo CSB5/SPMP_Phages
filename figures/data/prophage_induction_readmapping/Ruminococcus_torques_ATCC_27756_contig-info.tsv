@@ -1,0 +1,3 @@
+seq_id	contig	contig_len	cum_sum
+"a1883c1a3df8477f_1 assembly_id=""a1883c1a3df8477f"" genome_id=""0065da8ad05843d7"" atcc_catalog_number=""ATCC 27756"" species=""[Ruminococcus] torques"" contig_number=""1"" topology=""circular"""	a1883c1a3df8477f_1	2689249	0
+"a1883c1a3df8477f_2 assembly_id=""a1883c1a3df8477f"" genome_id=""0065da8ad05843d7"" atcc_catalog_number=""ATCC 27756"" species=""[Ruminococcus] torques"" contig_number=""2"" topology=""circular"""	a1883c1a3df8477f_2	47224	2689249

@@ -1,0 +1,13 @@
+predictor	coeff
+median_host_perc_abun	0.34276821
+median_perc_abun	0.12447604
+host_family_entropy	0.10977501
+host_order_entropy	0.09431263
+primary_host_phylumBacteroidota	0.08583068
+primary_host_phylumFirmicutes	0.06102241
+primary_host_phylumProteobacteria	-0.02639260
+perc_lysogenic	-0.03172000
+primary_host_phylumActinobacteriota	-0.03253367
+perc_has_AMG	-0.03697660
+perc_has_antidefense	-0.06166494
+perc_vOTUs_replicating	-0.12581959

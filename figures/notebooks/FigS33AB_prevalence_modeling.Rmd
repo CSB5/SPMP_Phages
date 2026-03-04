@@ -1,0 +1,125 @@
+---
+title: "Supplementary Fig. 33A: generalized linear model of VFC prevalence"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readxl)
+library(dplyr)
+library(glmnet)
+```
+
+### Process data
+```{r, results='asis'}
+# 1. Load VFC data
+df_vc <- read_excel("../data/Supplementary_Data_3_VFC_metadata.xlsx") %>%
+  select(VFC,
+         VC_size,
+         perc_prevalence,
+         median_perc_abun,
+         primary_host_phylum,
+         host_family_entropy,
+         host_order_entropy,
+         median_host_perc_abun,
+         perc_lysogenic,
+         perc_has_DGR,
+         perc_has_AMG,
+         perc_has_defense,
+         perc_has_antidefense,
+         perc_vOTUs_replicating)
+
+# 2. Filter VFCs
+df_vc <- df_vc %>% 
+  filter(VC_size >= 10) %>%
+  na.omit()
+
+# 3. Preprocess response
+df_vc$y <- df_vc$perc_prevalence / 100
+
+# 4. Preprocess predictors
+# a. min-max scaling of percentages
+perc_vars <- c(
+  "median_perc_abun",
+  "median_host_perc_abun",
+  "perc_lysogenic",
+  "perc_has_DGR",
+  "perc_has_AMG",
+  "perc_has_defense",
+  "perc_has_antidefense",
+  "perc_vOTUs_replicating"
+)
+df_vc[perc_vars] <- lapply(df_vc[perc_vars], function(x) {
+  (x-min(x))/(max(x)-min(x))
+})
+
+# b. min-max scaling of entropies
+entropy_vars <- c(
+  "host_family_entropy", 
+  "host_order_entropy"
+)
+df_vc[entropy_vars] <- lapply(df_vc[entropy_vars], function(x) {
+  (x-min(x))/(max(x)-min(x))
+})
+
+# Model matrix
+X <- model.matrix(
+  ~ median_perc_abun +
+    primary_host_phylum +
+    host_family_entropy +
+    host_order_entropy +
+    median_host_perc_abun +
+    perc_lysogenic +
+    perc_has_DGR +
+    perc_has_AMG +
+    perc_has_defense +
+    perc_has_antidefense +
+    perc_vOTUs_replicating,
+  data = df_vc
+)[, -1] # drop intercept
+
+# Remove zero-variance columns, if any
+X <- X[, apply(X, 2, sd) > 0]
+```
+
+### Run GLM with cross-validation, alpha = 0.5 (Elastic Net)
+```{r, results='asis'}
+set.seed(42)
+cvfit <- cv.glmnet(
+  x = X,
+  y = df_vc$y,
+  family = "gaussian",
+  alpha = 0.5,
+  standardize = FALSE,
+  nfolds = 10
+)
+
+plot(cvfit)
+
+# Extract coefficients
+s = "lambda.min"
+
+final_coefs <- coef(cvfit, s = s)
+
+y_pred <- as.numeric(predict(cvfit, newx = X, s = s))
+```
+
+### Review results
+```{r, results='asis'}
+# Print non-zero coefficients
+coef_mat <- final_coefs[which(final_coefs != 0), , drop = FALSE]
+coef_mat <- coef_mat[order(as.numeric(coef_mat[, 1]), decreasing = TRUE), , drop = FALSE]
+print(coef_mat)
+
+# Actual response
+y_true <- df_vc$y
+
+# Coefficient of determination, R^2 = 1 - (SS_res / SS_tot)
+ss_res <- sum((y_true - y_pred)^2)
+ss_tot <- sum((y_true - mean(y_true))^2)
+R2 <- 1 - ss_res / ss_tot
+cat(sprintf("\n%% of variance explained = %.1f\n", R2*100))
+
+# Pearson correlation between observed and predicted values
+cor_test <- cor.test(y_true, y_pred, method = "pearson")
+cor_test
+```

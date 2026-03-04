@@ -1,14 +1,32 @@
 # SPMP Phages
 
-Scripts used to generate the results and figures for the manuscript titled: "GuFi phages represent the most prevalent viral family-level clusters in the human gut microbiome".
+This repository contains computational pipelines and analysis scripts used to generate the results and figures for the manuscript: "GuFi phages represent the most prevalent viral family-level clusters in the human gut microbiome".
 
 ## Available pipelines
+
+Core computational pipelines used to generate the key results of the paper:
 
 * [Identifying viral OTUs from metagenomic assemblies](./pipelines/viral-identification/README.md)
 * [Constructing viral family-level clusters](./pipelines/vfc-construction/README.md)
 * [Estimating prevalence and abundance in metagenomic samples](./pipelines/coverage-estimation/README.md)
-* [Variant calling and pN/pS analysis](./pipelines/pNpS/README.md)
 * [Predicting virus-host associations from Hi-C data](./pipelines/HiC-host-association/README.md)
+* [Variant calling and pN/pS analysis](./pipelines/pNpS/README.md)
+
+## Figures
+
+All code and input data to reproduce the figures in the manuscript.
+
+* **`notebooks/`**
+  Python notebooks and R scripts used to generate all figures.
+
+  * Python notebooks were run with **Python 3.10.11**
+  * R scripts were run with **R 4.5.0**
+  
+  To reproduce the figures, clone this repository and execute the code from within this directory.
+
+* **`data/`**
+  Input data files required by the scripts.
+  In addition, download the Supplementary Data files from Zenodo ([https://zenodo.org/records/18253940](https://zenodo.org/records/18253940)) and save them in this directory before running the code.
 
 ## Raw data availability
 

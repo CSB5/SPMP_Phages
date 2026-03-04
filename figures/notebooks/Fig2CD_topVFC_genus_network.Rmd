@@ -1,0 +1,330 @@
+---
+title: "Fig. 2CD: top VFC-host genus bipartite network"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+source('Fig2CD_utils_network.R')
+```
+
+### Process data
+```{r}
+# Read host linkage data
+read_vh_sheet <- function(sheet) {
+  read_excel("../data/Supplementary_Data_6_virus-host_associations.xlsx", sheet = sheet) %>%
+    select(votu_id, VFC, phylum, family, genus)
+}
+
+# Take unique vOTU-genus pairs
+vc_host <- bind_rows(read_vh_sheet("prophage"), read_vh_sheet("spacer matching"), read_vh_sheet("Hi-C")) %>%
+  distinct()
+
+# Find VFC size among vOTUs *with* hosts assigned
+vc_size <- vc_host %>% 
+  dplyr::select(VFC, votu_id) %>% 
+  unique() %>% 
+  count(VFC) %>% 
+  rename(VC_size = 'n')
+
+# Take only VFCs 1-12
+vc_host_topvfc <- vc_host %>%
+  left_join(vc_size, by = 'VFC') %>%
+  filter(VFC <= 12)
+
+# Calculate proportion of vOTUs in VFC (*with* hosts assigned) infecting each genus
+vc_host_topvfc_genus_count <- vc_host_topvfc %>% 
+  count(VFC, VC_size, phylum, family, genus) %>% 
+  mutate(propn = n/VC_size*100)
+
+# Plot propn >= 5%
+vc_host_topvfc_genus_filt <- vc_host_topvfc_genus_count %>% 
+  filter(propn >= 5)
+```
+
+### Plot Firmicutes network
+```{r}
+vc_host_firmicutes <- vc_host_topvfc_genus_filt %>% 
+  filter(VFC %in% c(1, 2, 4, 5, 6, 7, 10, 11, 12))
+
+vc_host_firmicutes <- vc_host_firmicutes %>%
+  mutate(fam_color = case_when(family == 'Lachnospiraceae' ~ 'orange',
+                               family == 'Megasphaeraceae' ~ 'brown',
+                               family == 'Erysipelotrichaceae' ~ '#66A61E',
+                               family == 'UBA1381' ~ '#E7298A',
+                               family == 'Ruminococcaceae' ~ '#5E4FA2',
+                               family == 'Butyricicoccaceae' ~ '#E0B0FF',
+                               family == 'Oscillospiraceae' ~ '#00008B'))
+
+g_firmicutes <- generate_network(vc_host_firmicutes)
+
+firmicutes_order <- c('VFC\n12', 'VFC\n11', 'VFC\n10', 'VFC\n7', 'VFC\n6', 'VFC\n5', 'VFC\n4', 'VFC\n2', 'VFC\n1',
+                      'CAG-303','Bariatricus','Acetatifactor','AM51-8','Eisenbergiella', 'Faecalimonas','TLL10_bin.42','Anaerostipes',
+                      'UBA11774','TF01-11','Ruminococcus_B','Ruminococcus_A','Roseburia','Lachnospira','KLE1615','Fusicatenibacter',
+                      'Eubacterium_G','Enterocloster','Coprococcus_A','Coprococcus','Blautia_A','Blautia','Anaerobutyricum',
+                      'Agathobacter','Mediterraneibacter','Dorea', 'CAG-81', 'CAG-127', # Firmicutes_A.Lachnospirales/Lachnospiraceae
+                      'CAG-41', # Firmicutes_A/Monoglobales_A/UBA1381
+                      'Gemmiger','Faecalibacterium','Ruminococcus_C', # Firmicutes_A/Oscillospirales/Ruminococcaceae
+                      'Agathobaculum', # Firmicutes_A/Oscillospirales/Butyricicoccaceae
+                      'CAG-103','ER4','CAG-83', # Firmicutes_A/Oscillospirales/Oscillospiraceae
+                      'Holdemanella', # Firmicutes
+                      'Megasphaera' # Firmicutes_C
+                      )
+
+g_firmicutes_reorder <- reorder_network(g_firmicutes, 
+                                       firmicutes_order, 
+                                       label_dist = 5.7)
+
+# Plot bipartite nodes
+V(g_firmicutes_reorder)$y <- c(seq(from = -1.18, by = 0.29, length.out = 9),
+                               seq(from = -1.18, by = 0.064, length.out = 38))
+V(g_firmicutes_reorder)$x <- c(rep(-0.6, 9), rep(0.4, 38))
+
+pdf("Fig2C_Firmicutes_network.pdf", width = 15, height = 12)
+
+yrange <- range(V(g_firmicutes_reorder)$y)
+
+pad_y <- diff(yrange) * 0.0
+
+plot(g_firmicutes_reorder,
+     rescale = FALSE,
+     ylim = yrange + c(-pad_y, pad_y),
+     vertex.label = NA,
+     edge.width = 2,
+     margins = c(0, 0.5))
+
+x_coords <- V(g_firmicutes_reorder)$x
+y_coords <- V(g_firmicutes_reorder)$y
+labels <- V(g_firmicutes_reorder)$name
+
+# VFC labels
+text(x_coords[1:9],
+     y_coords[1:9],
+     labels = labels[1:9],
+     family = "sans",
+     adj = c(0.5, 0.5),
+     cex = 1.7)
+
+# Genus labels
+text(x_coords[10:length(labels)] + 0.05,
+     y_coords[10:length(labels)],
+     labels = labels[10:length(labels)],
+     family = "sans",
+     font = 3,
+     adj = c(0, 0.5),
+     cex = 1.5)
+
+dev.off()
+```
+
+### Plot Firmicutes legend
+```{r}
+plot(1, type="n", xlab="", ylab="", xaxt="n", yaxt="n", bty="n")
+
+legend_pos <- c(0.55, 1.4)
+legend(legend_pos[1], legend_pos[2],
+       legend = c("Megasphaeraceae",
+                  "Erysipelotrichaceae",
+                  "Oscillospiraceae",
+                  "Butyricicoccaceae",
+                  "Ruminococcaceae",
+                  "UBA1381",
+                  "Lachnospiraceae"),
+       col = c('brown', '#66A61E',
+               '#00008B', '#E0B0FF', '#5E4FA2',
+               '#E7298A',
+               'orange'),
+       pch = 19, horiz =F, 
+       x.intersp = 0.2, text.width = 0.15,
+       y.intersp=0.5,
+       cex = 1, pt.cex = 1, ncol=2,
+       bty = 'n',
+       text.font = 3)
+
+text(legend_pos[1] + 0.185, legend_pos[2] - 0.01, "Family", cex = 1.1)
+
+dev.copy(pdf, file="Fig2C_Firmicutes_legend.pdf", width=10, height=10)
+dev.off()
+```
+
+### Plot Bacteroidota network
+```{r}
+vc_host_bacteroidota <- vc_host_topvfc_genus_filt %>% 
+  filter(VFC %in% c(3))
+
+vc_host_bacteroidota <- vc_host_bacteroidota %>%
+  mutate(fam_color = case_when(family == 'Bacteroidaceae' ~ 'yellow4',
+                               family == 'Tannerellaceae' ~ 'skyblue2',
+                               family == 'Rikenellaceae' ~ 'deeppink1',
+                               family == 'Muribaculaceae' ~ 'steelblue4'))
+
+g_bacteroidota <- generate_network(vc_host_bacteroidota)
+
+bacteroidota_order <- c('VFC\n3',
+                        'Alistipes', # Rikenellaceae
+                        'Parabacteroides', # Tannerellaceae
+                        'CAG-279', # Muribaculaceae
+                        'Prevotellamassilia','Prevotella','Phocaeicola','Bacteroides' # Bacteroidaceae
+                        )
+
+g_bacteroidota_reorder <- reorder_network(g_bacteroidota, 
+                                          bacteroidota_order,
+                                          label_dist = 5.9)
+
+# Plot bipartite nodes
+V(g_bacteroidota_reorder)$y <- c(0.18,
+                                 seq(from = -0.25, by = 0.15, length.out = 7))
+V(g_bacteroidota_reorder)$x <- c(rep(0, 1), rep(0.5, 7))
+V(g_bacteroidota_reorder)$size <- ifelse(V(g_bacteroidota_reorder)$type, 7, 18)
+
+pdf("Fig2D_Bacteroidota_network.pdf", width = 15, height = 10)
+
+xrange <- range(V(g_bacteroidota_reorder)$x)
+yrange <- range(V(g_bacteroidota_reorder)$y)
+
+pad_x <- diff(xrange) * 0.2
+pad_y <- diff(yrange) * 0.05
+
+plot(g_bacteroidota_reorder, 
+     rescale = FALSE,
+     xlim = xrange + c(-pad_x, pad_x),
+     ylim = yrange + c(-pad_y, pad_y),
+     vertex.label = NA,
+     vertex.size = V(g_bacteroidota_reorder)$size,
+     edge.width = 3,
+     margin = 0)
+
+x_coords <- V(g_bacteroidota_reorder)$x
+y_coords <- V(g_bacteroidota_reorder)$y
+labels <- V(g_bacteroidota_reorder)$name
+
+# VFC labels
+text(x_coords[1],
+     y_coords[1],
+     labels = labels[1],
+     family = "sans",
+     adj = c(0.5, 0.5),
+     cex = 3.2)
+
+# Genus labels
+text(x_coords[2:length(labels)] + 0.05,
+     y_coords[2:length(labels)],
+     labels = labels[2:length(labels)],
+     family = "sans",
+     font = 3,
+     adj = c(0, 0.5),
+     cex = 3.2)
+
+dev.off()
+```
+
+### Plot Actinobacteriota network
+```{r}
+vc_host_actino <- vc_host_topvfc_genus_filt %>% 
+  filter(VFC %in% c(8, 9))
+
+vc_host_actino <- vc_host_actino %>%
+  mutate(fam_color = case_when(family == 'Bifidobacteriaceae' ~ 'green4',
+                               family == 'Eggerthellaceae' ~ '#6A3D9A'))
+
+g_actino <- generate_network(vc_host_actino)
+
+actino_order <- c('VFC\n9', 'VFC\n8',
+                    'Slackia_A', 'Bifidobacterium')
+
+g_actino_reorder <- reorder_network(g_actino,
+                                    actino_order,
+                                    label_dist=5.1)
+
+# Plot bipartite nodes
+V(g_actino_reorder)$y <- c(0, 0.3,
+                           0, 0.3)
+V(g_actino_reorder)$x <- c(rep(0, 2), rep(0.5, 2))
+V(g_actino_reorder)$size <- ifelse(V(g_actino_reorder)$type, 7, 18)
+
+pdf("Fig2D_Actino_network.pdf", width = 15, height = 10)
+
+xrange <- range(V(g_actino_reorder)$x)
+yrange <- range(V(g_actino_reorder)$y)
+
+pad_x <- diff(xrange) * 1
+pad_y <- diff(yrange) * 0.05
+
+plot(g_actino_reorder, 
+     rescale = FALSE,
+     xlim = xrange + c(-pad_x, pad_x),
+     ylim = yrange + c(-pad_y, pad_y),
+     vertex.label = NA,
+     vertex.size = V(g_actino_reorder)$size,
+     edge.width = 3,
+     margin = 0)
+
+x_coords <- V(g_actino_reorder)$x
+y_coords <- V(g_actino_reorder)$y
+labels <- V(g_actino_reorder)$name
+
+# VFC labels
+text(x_coords[1:2],
+     y_coords[1:2],
+     labels = labels[1:2],
+     family = "sans",
+     adj = c(0.5, 0.5),
+     cex = 3.5)
+
+# Genus labels
+text(x_coords[3:4] + 0.05,
+     y_coords[3:4],
+     labels = labels[3:4],
+     family = "sans",
+     font = 3,
+     adj = c(0, 0.5),
+     cex = 3.5)
+
+dev.off()
+```
+
+### Plot Bacteroidota & Actinobacteriota legend
+```{r}
+plot(1, type="n", xlab="", ylab="", xaxt="n", yaxt="n", bty="n")
+
+legend_pos <- c(0.75, 1.3)
+legend(legend_pos[1], legend_pos[2],
+       legend = c('Bacteroidaceae', 'Muribaculaceae', 'Tannerellaceae', 'Rikenellaceae',
+                 'Bifidobacteriaceae','Eggerthellaceae'),
+       col = c('yellow4', 'steelblue4', 'skyblue2', 'deeppink1', 
+              'green4','#6A3D9A'),
+       pch = 19, horiz =F, 
+       x.intersp = 1, y.intersp = 1.2,
+       cex = 1, pt.cex = 1,
+       bty = 'n', 
+       text.font = 3)
+
+text(legend_pos[1] + 0.18, legend_pos[2] + 0.01, "Family", cex = 1.1)
+
+dev.copy(pdf, file="Fig2D_Bacteroidota_Actino_legend.pdf", width=5, height=5)
+dev.off()
+```
+
+### Plot edgecolor legend
+```{r}
+plot(1, type="n", xlab="", ylab="", xaxt="n", yaxt="n", bty="n")
+
+legend_pos <- c(1, 1.1)
+legend(legend_pos[1], legend_pos[2],
+  legend = c("",
+             expression("">= 5 * "%"), 
+             expression("">= 10 * "%"), 
+             expression("">= 20 * "%"),
+             expression("">= 50 * "%"),
+             expression (""== 100 * "%")),
+  fill = c(NA, "steelblue", "#9ecae1", "#ffa9a9", "#a50000", "black"),
+  border = NA,
+  y.intersp = 1,
+  x.intersp = 0.08,
+  cex = 1,
+  bty = "n"
+)
+text(legend_pos[1] + 0.08, legend_pos[2] - 0.02, "% of vOTUs", cex = 1)
+
+dev.copy(pdf, file="Fig2CD_edgecolor_legend.pdf", width=7, height=5)
+dev.off()
+```

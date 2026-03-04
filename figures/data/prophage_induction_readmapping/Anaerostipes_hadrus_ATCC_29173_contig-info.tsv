@@ -1,0 +1,7 @@
+seq_id	contig	contig_len	cum_sum
+"72d052e7488c4515_1 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""1"" topology=""linear"""	72d052e7488c4515_1	2641046	0
+"72d052e7488c4515_4 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""4"" topology=""linear"""	72d052e7488c4515_4	41020	2641046
+"72d052e7488c4515_3 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""3"" topology=""linear"""	72d052e7488c4515_3	74552	2682066
+"72d052e7488c4515_2 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""2"" topology=""linear"""	72d052e7488c4515_2	78109	2756618
+"72d052e7488c4515_5 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""5"" topology=""linear"""	72d052e7488c4515_5	2860	2834727
+"72d052e7488c4515_6 assembly_id=""72d052e7488c4515"" genome_id=""5b1b00ed87c34858"" atcc_catalog_number=""ATCC 29173"" species=""Anaerostipes hadrus"" contig_number=""6"" topology=""linear"""	72d052e7488c4515_6	1077	2837587
