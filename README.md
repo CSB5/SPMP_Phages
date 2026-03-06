@@ -19,7 +19,7 @@ This repository contains core computational pipelines and analysis scripts used 
 
 ## Raw data availability
 
-* All Supplementary Data files, identified viral sequences, and representative vOTU sequences are available via Zenodo at [DOI:10.5281/zenodo.18780256](https://zenodo.org/records/18780256).
+* All Supplementary Data files, identified viral sequences, and representative vOTU sequences are available via Zenodo at [DOI:10.5281/zenodo.18253939](https://doi.org/10.5281/zenodo.18253939).
 * The hybrid MAGs used for host association and read coverage analysis are available from the European Nucleotide Archive (ENA) under project accession [PRJEB49168](https://www.ebi.ac.uk/ena/browser/view/PRJEB49168?show=analyses).
 * Hi-C (n=84) and VLP (n=64) metagenomic sequencing reads are available from the European Nucleotide Archive (ENA) under project accession [PRJEB106095](https://www.ebi.ac.uk/ena/browser/view/PRJEB106095). Illumina (n=109), Oxford Nanopore (n=109), and Hi-C (n=24) metagenomic sequencing reads are available under project accession [PRJEB49168](https://www.ebi.ac.uk/ena/browser/view/PRJEB49168?show=reads).
 
